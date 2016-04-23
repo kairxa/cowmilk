@@ -3,22 +3,73 @@ Backend is only an API service without any rendering, and should just focus on p
 
 # Technology
 - Database
-MongoDB
+    - MongoDB
 
-- Cache
-Redis
+- Cache/Meta
+    - Redis
+
+# Services
+- Login
+    - Facebook
+
+- Email
+    - Mandrill
+    - Sendinblue
+    - Mailgun
+
+- Embedded Media
+    - Embedly
+
+- Comment
+    - Disqus
 
 # SLA
 - Maximum response time
-TBA
+    - TBA
 
 - Minimum request per seconds load Capacity
-TBA
+    - TBA
 
 - Minimum concurrent users load capacity
-TBA
+    - TBA
 
 ------------------------------------------------------
+
+# Metas
+
+```
+Logo (http://your_url/example.jpeg)
+
+Background (http://your_url/example.jpeg)
+
+Theme (theme_name)
+
+ColorScheme (#aaabbb,#ccceee,#111333)
+
+Toggle Login With Facebook (boolean)
+
+Facebook API Key (string)
+
+Toggle Comment Album (boolean)
+
+Toggle Comment Chapter (boolean)
+
+Toggle Comment Use Disqus (boolean)
+
+Disqus API Key (string)
+
+Embedly API Key (string)
+
+Toggle Email Use (mandrill,sendinblue,mailgun)
+
+Mandrill API Key (string)
+
+Sendinblue API Key (string)
+
+Mailgun API Key (string)
+
+Toggle Use TOTP Login (boolean)
+```
 
 # Models
 
@@ -46,7 +97,7 @@ tags []string(256)
 type enum(novel,comic)
 ```
 
-### Node
+## Node
 
 ```
 collection_id ObjectId
@@ -56,7 +107,7 @@ file_type enum(pdf,image)
 content string(16384)
 ```
 
-### Comment
+## Comment
 
 ```
 user_id ObjectId
@@ -73,7 +124,7 @@ media {
 }
 ```
 
-### Client
+## Client
 
 ```
 user_id ObjectId
@@ -94,6 +145,23 @@ data ANY
 -------------------------------------------------------
 
 # API Endpoints
+
+## Meta
+
+```
+/meta/set (admin only)
+Parameters:
+Headers:
+api-key (mandatory)
+Response Data:
+
+/meta/get/:key
+Parameters:
+key_name (admin only, except )
+Headers:
+api-key (mandatory)
+Response Data:
+```
 
 ## Comment
 
@@ -302,7 +370,7 @@ When you send request to facebook, you must attach state={Your Frontend Applicat
 
 Then the server must verify this state callback.
 
- After that verify the code to facebook.
+After that verify the code to facebook.
 
 /oauth2/facebook/token
 Parameters:
