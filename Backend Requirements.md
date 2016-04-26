@@ -1,14 +1,9 @@
 # Backend Requirements
-Backend is only an API service without any rendering, and should just focus on producing JSON for client consumption.
-
-# Technology
-- Database
-    - MongoDB
-
-- Cache/Meta
-    - Redis
+Backend is only an API service without any rendering, and just focus on producing JSON for client consumption. This document is still a draft and will be frequently updated.
 
 # Services
+These are the list of services used in a Cowmilk server and at least one from each categories must be supported:
+
 - Login
     - Facebook
 
@@ -16,6 +11,7 @@ Backend is only an API service without any rendering, and should just focus on p
     - Mandrill
     - Sendinblue
     - Mailgun
+    - Sendgrid
 
 - Embedded Media
     - Embedly
@@ -24,54 +20,124 @@ Backend is only an API service without any rendering, and should just focus on p
     - Disqus
 
 # SLA
+These are the minimum specification a Cowmilk server has and must be upheld at all times.
+
+- Minimum Uptime Percentage
+    - TBA
+
 - Maximum response time
-    - TBA
-
-- Minimum request per seconds load Capacity
-    - TBA
-
-- Minimum concurrent users load capacity
     - TBA
 
 ------------------------------------------------------
 
 # Metas
 
-```
-Logo (http://your_url/example.jpeg)
+#### Logo 
+The URL to logo image of the Cowmilk server.
 
-Background (http://your_url/example.jpeg)
+##### Key
+`logo`
 
-Theme (theme_name)
+##### Example
+`http://your_url/example.jpeg`
 
-ColorScheme (#aaabbb,#ccceee,#111333)
+#### Background
+The URL to background image of the Cowmilk server.
 
-Toggle Login With Facebook (boolean)
+##### Key
+`background`
 
-Facebook API Key (string)
+##### Example
+`http://your_url/example.jpeg`
 
-Toggle Comment Album (boolean)
+#### Theme
+The theme name of the Cowmilk server, used by frontend to determine the correct theme.
 
-Toggle Comment Chapter (boolean)
+##### Key
+`theme`
 
-Toggle Comment Use Disqus (boolean)
+##### Example
+`luna`
 
-Disqus API Key (string)
+#### Color Scheme
+The color scheme for the frontend, coded in hexadecimal representation of colors.
+Could be more than one item separated by a comma.
 
-Embedly API Key (string)
+##### Key
+`color-scheme`
 
-Toggle Email Use (mandrill,sendinblue,mailgun)
+##### Example
+`#aaabbb,#ccceee,#111333`
 
-Mandrill API Key (string)
+##### Toggle Album Comment
+An option to toggle album comment. Will reject any update or insert into API too.
 
-Sendinblue API Key (string)
+##### Key
+`toggle-album-comment`
 
-Mailgun API Key (string)
+##### Example
+`true`
 
-Toggle Use TOTP Login (boolean)
-```
+#### Toggle Chapter Comment
+An option to toggle chapter comment. Will reject any update or insert into API too.
+
+##### Key
+`toggle-chapter-comment`
+
+##### Example
+`true`
+
+##### Third Party Login
+The third party login service(s) that must be showed on the frontend and enabled on the backend.
+Can be more than one item separated by a comma.
+
+##### Key
+`third-party-login`
+
+##### Example
+`facebook,twitter`
+
+#### Email Service
+The email service(s) used by the Cowmilk server for sending email, mostly account verification mail.
+
+##### Key
+`email-service`
+
+##### Example
+`sendgrid`
+
+#### Comment Service
+The comment service used by the Cowmilk server.
+
+##### Key
+`comment-service`
+
+##### Example
+`disqus`
+
+#### Embedded Media Service
+The third party embedded media service that is used by the Cowmilk server.
+
+##### Key
+`embedded-media-service`
+
+##### Example
+`embedly`
+
+#### API Key
+API key for the services.
+
+##### Key
+`SERVICE_NAME-api-key`
+
+##### Example
+`akeok931m3bfm3i27113`
 
 # Models
+
+A Cowmilk server must have at least these informations in their database(s). 
+The actual structure of the model in the database and implementation are totally in the developer's hands.
+The format is `PROPERTY_NAME PROPERTY_TYPE(MAX_MIN_OR_POSSIBLE_VALUES)`.
 
 ## User
 
@@ -83,7 +149,6 @@ email string(128)
 description string(1000)
 tagline string(256)
 profile_picture string(1024)
-facebook_id string(64)
 role enum(admin,user)
 status enum(suspended,active)
 ```
@@ -95,6 +160,7 @@ user_id ObjectId
 name string(1024)
 tags []string(256)
 type enum(novel,comic)
+commentable bool
 ```
 
 ## Node
@@ -105,6 +171,7 @@ name string(1024)
 file_url string(1024)
 file_type enum(pdf,image)
 content string(16384)
+commentable bool
 ```
 
 ## Comment
@@ -144,248 +211,77 @@ data ANY
 ```
 -------------------------------------------------------
 
-# API Endpoints
+# API
 
 ## Meta
 
-```
-/meta/set (admin only)
-Parameters:
-Headers:
-api-key (mandatory)
-Response Data:
+The server must have a pair of API endpoints to get and set meta data.
 
-/meta/get/:key
-Parameters:
-key_name (admin only, except )
-Headers:
-api-key (mandatory)
-Response Data:
-```
+#### /meta/set **POST
+Only admin have access to this endpoint.
 
-## Comment
+##### Parameters:
 
-```
-/comment
-Parameters:
-order_by (optional) (default: -created_at)
-page (optional) (default: 0)
-per_page (optional) (default: 10)
-id (optional)
-user_id (optional)
-target_id (optional)
-target_type (optional)
-content (optional)
-media_title (optional)
-media_description (optional)
-media_type (optional)
-media_og_provider_display (optional)
-Headers:
-api-key (mandatory)
-Response Data:
-[]Comment
+##### Headers:
+- api-key **(mandatory)
 
-/comment/:id
-Headers:
-api-key (mandatory)
-Response Data:
-Comment
+##### Response Data:
 
-/comment/create
-Parameters:
-Comment Model properties (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-Comment
+#### /meta/get/:key **GET
 
-/comment/update
-Parameters:
-Comment Model properties (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-Comment
+##### Parameters:
+- key_name **(admin only, except some data that deemed necessary for the frontend)
 
-/comment/delete
-Parameters:
-id (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-comment_id
+##### Headers:
+- api-key **(mandatory)
 
-```
+##### Response Data:
 
-## Client
-
-```
-/client (admin only)
-Parameters:
-order_by (optional) (default: -created_at)
-page (optional) (default: 0)
-per_page (optional) (default: 10)
-id (optional)
-name (optional)
-user_id (optional)
-description (optional)
-status (optional)
-Headers:
-api-key (mandatory)
-Response Data:
-[]Client (omitting api_key)
-
-/client/:id (admin and owner only)
-Headers:
-api-key (mandatory)
-Response Data:
-Client (omitting api_key for admin)
-
-/client/create (only one time for users)
-Parameters:
-Client Model properties (mandatory) (omitting api_key)
-Headers:
-api-key (mandatory)
-Response Data:
-Client (omitting api_key for admin)
-
-/client/update (admin and owner only)
-Parameters:
-Client Model properties (mandatory) (omitting api_key)
-Headers:
-api-key (mandatory)
-Response Data:
-Client (omitting api_key for admin)
-
-/client/delete (admin and owner only)
-Parameters:
-id (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-client_id
-
-/client/suspend (admin only)
-Parameters:
-id (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-client_id
-```
-
-## User
-
-```
-/login
-Parameters:
-username (mandatory)
-password (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-User
-
-/logout
-Headers:
-api-key (mandatory)
-Response Data:
-user_id
-
-/user
-Parameters:
-order_by (optional) (default: -created_at)
-page (optional) (default: 0)
-per_page (optional) (default: 10)
-id (optional)
-name (optional)
-username (optional)
-tagline (optional)
-description (optional)
-role (optional) (admin only)
-status (optional) (admin only)
-email (optional) (admin only)
-facebook_id (optional) (admin only)
-Headers: 
-api-key (mandatory)
-Response Data:
-[]User (omitting password)
-
-/user/me
-Headers:
-api-key (mandatory)
-Response Data:
-User (omitting password)
-
-/user/:id
-Headers:
-api-key (mandatory)
-Response Data:
-User (omitting password)
-
-/user/update (admin and owner only)
-Parameters:
-User Model Properties (mandatory) (omitting username except one time only)
-Headers:
-api-key (mandatory)
-Response Data:
-User (omitting password)
-
-/user/create (admin only)
-Parameters:
-User Model Properties (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-User (omitting password)
-
-/user/delete (admin only)
-Parameters:
-id (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-user_id
-
-/user/suspend (admin only)
-Parameters:
-id (mandatory)
-Headers:
-api-key (mandatory)
-Response Data:
-user_id
-```
 ## Oauth2
 
-```
-/oauth2/facebook/authorization
-Parameters:
-error_reason
-error
-error_description
-code
-state 
-----
-When you send request to facebook, you must attach state={Your Frontend Application ID} to the request. 
+The server should support login via third party services, like facebook, twitter, etc. 
+The convention for the routes must be `/oauth/VERSION/VENDOR/authorization` to receive authorization code,
+and `/oauth/VERSION/VENDOR/token` to receive access token.
+
+How to process and implement are fully given to the server developer for the best practice.
+
+Next is the example of facebook oauth2 authorization for a Cowmilk server.
+
+#### /oauth/2/facebook/authorization **GET
+
+##### Parameters:
+- error_reason
+- error
+- error_description
+- code
+- state 
+
+When you send request to facebook, you must attach `state={Your Frontend Application ID}` to the request. 
 
 Then the server must verify this state callback.
 
 After that verify the code to facebook.
 
-/oauth2/facebook/token
-Parameters:
-access_token
-token_type
-expires_in
----
+#### /oauth/2/facebook/token **POST
+
+##### Parameters:
+- access_token
+- token_type
+- expires_in
+
 After receiving response from facebook, we send request to facebook using GET like this:
-https://graph.facebook.com/debug_token?input_token={code}&access_token={access_token}
+`https://graph.facebook.com/debug_token?input_token={code}&access_token={access_token}`
 
-Then we should verify if the returned user_id, app_id, expires_at, and is_valid is okay.
+Then we should verify if the returned `user_id`, `app_id`, `expires_at`, and `is_valid` is valid.
 
-After that, request user profile data to /user/me?access_token={access_token} to get and upsert user's data in our server (by using id in response as facebook_id in our database.)
+After that, request user profile data to facebook's `/user/me?access_token={access_token}` to get and upsert user's data in our server (by using id in response as `facebook_id` property in our database.)
 
-Then generate a session with user_id, access_token, and role in it before sending response to the client.
+Then generate a session with `user_id`, `access_token`, and `role` in it before sending response to the client.
 
-Upsert, if insert operation should generate random username that the user could change one time only with a time limit until rendered permanent.
-```
+## GraphQL
+
+A Cowmilk server must support [GraphQL](https://facebook.github.io/graphql) for both fetching and upserting data.
+
+##### /data **GET
+
+##### /data **POST
